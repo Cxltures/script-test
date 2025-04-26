@@ -48,11 +48,9 @@ local function rejoin()
         rejoin = table.clone(getgenv().rejoinConfig)
     }
 
-    if syn and syn.queue_on_teleport then
-        syn.queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/Cxltures/script-test/refs/heads/main/toobad.lua'))()")
-    elseif queue_on_teleport then
-        queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/Cxltures/script-test/refs/heads/main/toobad.lua'))()")
-    end
+        if queue_on_teleport then
+            queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/Cxltures/script-test/refs/heads/main/toobad.lua'))()")
+        end
 
     if #Players:GetPlayers() <= 1 then
         localPlayer:Kick("Rejoining...")
