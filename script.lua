@@ -49,7 +49,7 @@ local function rejoin()
     }
 
         if queue_on_teleport then
-            queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/Cxltures/script-test/refs/heads/main/script.lua'))()")
+            queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/Cxltures/script-test/refs/heads/main/toobad.lua'))()")
         end
 
     if #Players:GetPlayers() <= 1 then
