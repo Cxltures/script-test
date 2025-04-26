@@ -3,9 +3,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
 
--- Persistent configuration system
 if not _G.PersistentPlayerSettings then
     _G.PersistentPlayerSettings = {
         hitbox = {
@@ -25,48 +23,43 @@ if not _G.PersistentPlayerSettings then
     }
 end
 
--- Apply configuration to genv
 getgenv().hitboxConfig = _G.PersistentPlayerSettings.hitbox
 getgenv().walkSpeedConfig = _G.PersistentPlayerSettings.walkSpeed
 getgenv().rejoinConfig = _G.PersistentPlayerSettings.rejoin
 
--- Local player reference
 local localPlayer = Players.LocalPlayer
 if not localPlayer then
     localPlayer = Players.PlayerAdded:Wait()
 end
 
--- Enhanced rejoin function with guaranteed persistence
 local function rejoin()
     if not getgenv().rejoinConfig.enabled then return end
-    
-    -- Save all current settings
+
     _G.PersistentPlayerSettings = {
         hitbox = table.clone(getgenv().hitboxConfig),
         walkSpeed = table.clone(getgenv().walkSpeedConfig),
         rejoin = table.clone(getgenv().rejoinConfig)
     }
-    
-    -- Create restart script in player character
+
     if localPlayer.Character then
         local restartScript = Instance.new("Script", localPlayer.Character)
         restartScript.Name = "AutoRestartScript"
-        restartScript.Source =
-            task.wait(3) -- Wait for game to fully load
-            
-            -- Check if main script needs to run again
+        restartScript.Source = [[
+            task.wait(3)
+
             if _G.PersistentPlayerSettings and _G.PersistentPlayerSettings.rejoin.autoRestart then
                 local success, err = pcall(function()
-                    loadstring(game:HttpGet("https://raw.githubusercontent.com/Cxltures/script-test/refs/heads/main/script.lua"))()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/YOURUSERNAME/YOURREPO/main/YOURSCRIPT.lua"))()
                 end)
                 if not success then
                     warn("Failed to restart script:", err)
                 end
             end
-            
+
             script:Destroy()
+        ]]
     end
-    
+
     if #Players:GetPlayers() <= 1 then
         localPlayer:Kick("Rejoining...")
         task.wait()
@@ -76,31 +69,28 @@ local function rejoin()
     end
 end
 
--- Hitbox System Functions
 local function updateHitboxes()
     if not getgenv().hitboxConfig.enabled then return end
-    
+
     for _, otherPlayer in pairs(Players:GetPlayers()) do
         if otherPlayer == localPlayer then continue end
-        
+
         local character = otherPlayer.Character
         if character then
             local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
             if humanoidRootPart then
-                -- Store original values if we haven't already
                 if not humanoidRootPart:FindFirstChild("OriginalSize") then
                     local originalSize = Instance.new("Vector3Value")
                     originalSize.Name = "OriginalSize"
                     originalSize.Value = humanoidRootPart.Size
                     originalSize.Parent = humanoidRootPart
-                    
+
                     local originalTransparency = Instance.new("NumberValue")
                     originalTransparency.Name = "OriginalTransparency"
                     originalTransparency.Value = humanoidRootPart.Transparency
                     originalTransparency.Parent = humanoidRootPart
                 end
-                
-                -- Apply hitbox modifications
+
                 humanoidRootPart.Size = Vector3.new(getgenv().hitboxConfig.size, getgenv().hitboxConfig.size, getgenv().hitboxConfig.size)
                 humanoidRootPart.Transparency = getgenv().hitboxConfig.transparency
                 humanoidRootPart.CanCollide = getgenv().hitboxConfig.collision
@@ -115,12 +105,12 @@ local function restoreOriginalValues(character)
         if humanoidRootPart then
             local originalSize = humanoidRootPart:FindFirstChild("OriginalSize")
             local originalTransparency = humanoidRootPart:FindFirstChild("OriginalTransparency")
-            
+
             if originalSize then
                 humanoidRootPart.Size = originalSize.Value
                 originalSize:Destroy()
             end
-            
+
             if originalTransparency then
                 humanoidRootPart.Transparency = originalTransparency.Value
                 originalTransparency:Destroy()
@@ -129,7 +119,6 @@ local function restoreOriginalValues(character)
     end
 end
 
--- WalkSpeed System Functions
 local function enforceWalkSpeed(humanoid)
     if humanoid and humanoid.WalkSpeed ~= getgenv().walkSpeedConfig.speed then
         humanoid.WalkSpeed = getgenv().walkSpeedConfig.speed
@@ -138,43 +127,38 @@ end
 
 local function setupWalkSpeed(char)
     if not getgenv().walkSpeedConfig.enabled then return end
-    
+
     local humanoid = char:WaitForChild("Humanoid")
     enforceWalkSpeed(humanoid)
-    
+
     if _G.WalkSpeedConnections and _G.WalkSpeedConnections.walkSpeedChanged then
         _G.WalkSpeedConnections.walkSpeedChanged:Disconnect()
     end
-    
+
     if not _G.WalkSpeedConnections then
         _G.WalkSpeedConnections = {}
     end
-    
+
     _G.WalkSpeedConnections.walkSpeedChanged = humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
         enforceWalkSpeed(humanoid)
     end)
 end
 
--- Initialize systems
 local function initSystems()
-    -- Hitbox System
     _G.HitboxSystem = {
         connections = { render = {} },
         restore = restoreOriginalValues
     }
-    
-    -- WalkSpeed System
+
     if not _G.WalkSpeedConnections then
         _G.WalkSpeedConnections = {
             walkSpeedChanged = nil,
             characterAdded = nil
         }
     end
-    
-    -- Set up connections
+
     table.insert(_G.HitboxSystem.connections.render, RunService.RenderStepped:Connect(updateHitboxes))
-    
-    -- Player management
+
     Players.PlayerAdded:Connect(function(newPlayer)
         newPlayer.CharacterAdded:Connect(function(character)
             if getgenv().hitboxConfig.enabled then
@@ -182,14 +166,13 @@ local function initSystems()
             end
         end)
     end)
-    
+
     Players.PlayerRemoving:Connect(function(leavingPlayer)
         if leavingPlayer ~= localPlayer then
             restoreOriginalValues(leavingPlayer.Character)
         end
     end)
-    
-    -- Initialize for existing players
+
     for _, otherPlayer in pairs(Players:GetPlayers()) do
         if otherPlayer ~= localPlayer then
             if otherPlayer.Character then
@@ -200,14 +183,12 @@ local function initSystems()
             end)
         end
     end
-    
-    -- WalkSpeed setup
+
     _G.WalkSpeedConnections.characterAdded = localPlayer.CharacterAdded:Connect(setupWalkSpeed)
     if localPlayer.Character then
         setupWalkSpeed(localPlayer.Character)
     end
-    
-    -- Toggle functions
+
     getgenv().toggleHitboxes = function(enabled)
         getgenv().hitboxConfig.enabled = enabled
         _G.PersistentPlayerSettings.hitbox.enabled = enabled
@@ -221,7 +202,7 @@ local function initSystems()
             updateHitboxes()
         end
     end
-    
+
     getgenv().toggleWalkSpeed = function(enabled)
         getgenv().walkSpeedConfig.enabled = enabled
         _G.PersistentPlayerSettings.walkSpeed.enabled = enabled
@@ -229,19 +210,18 @@ local function initSystems()
             setupWalkSpeed(localPlayer.Character)
         end
     end
-    
+
     getgenv().toggleRejoin = function(enabled)
         getgenv().rejoinConfig.enabled = enabled
         _G.PersistentPlayerSettings.rejoin.enabled = enabled
     end
-    
+
     getgenv().toggleAutoRestart = function(enabled)
         getgenv().rejoinConfig.autoRestart = enabled
         _G.PersistentPlayerSettings.rejoin.autoRestart = enabled
         print("Auto-restart on rejoin:", enabled and "ENABLED" or "DISABLED")
     end
-    
-    -- Cleanup functions
+
     getgenv().cleanupHitboxes = function()
         getgenv().toggleHitboxes(false)
         if _G.HitboxSystem then
@@ -251,7 +231,7 @@ local function initSystems()
             _G.HitboxSystem = nil
         end
     end
-    
+
     getgenv().cleanupWalkSpeed = function()
         getgenv().toggleWalkSpeed(false)
         if _G.WalkSpeedConnections then
@@ -264,23 +244,20 @@ local function initSystems()
             _G.WalkSpeedConnections = nil
         end
     end
-    
+
     getgenv().disableSystems = function()
         getgenv().cleanupHitboxes()
         getgenv().cleanupWalkSpeed()
         _G.PersistentPlayerSettings.rejoin.autoRestart = false
     end
-    
-    -- Automatic restart check
+
     if _G.PersistentPlayerSettings.rejoin.autoRestart then
         print("Auto-restart was enabled on previous session - settings preserved")
     end
 end
 
--- Initialize the systems
 initSystems()
 
--- Manual triggers:
 UserInputService.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.F5 then
         getgenv().toggleHitboxes(not getgenv().hitboxConfig.enabled)
