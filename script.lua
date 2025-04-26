@@ -49,9 +49,9 @@ local function rejoin()
     }
 
     if syn and syn.queue_on_teleport then
-        syn.queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/YOURUSERNAME/YOURREPO/main/YOURSCRIPT.lua'))()")
+        syn.queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/Cxltures/script-test/refs/heads/main/script.lua'))()")
     elseif queue_on_teleport then
-        queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/YOURUSERNAME/YOURREPO/main/YOURSCRIPT.lua'))()")
+        queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/Cxltures/script-test/refs/heads/main/script.lua'))()")
     end
 
     if #Players:GetPlayers() <= 1 then
