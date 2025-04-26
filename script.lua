@@ -1,5 +1,3 @@
-loadstring(game:HttpGet(('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'),true))()
-
 -- Ultimate Player Control System with Auto-Restart
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -53,13 +51,13 @@ local function rejoin()
     if localPlayer.Character then
         local restartScript = Instance.new("Script", localPlayer.Character)
         restartScript.Name = "AutoRestartScript"
-        restartScript.Source = [[
+        restartScript.Source =
             task.wait(3) -- Wait for game to fully load
             
             -- Check if main script needs to run again
             if _G.PersistentPlayerSettings and _G.PersistentPlayerSettings.rejoin.autoRestart then
                 local success, err = pcall(function()
-                    loadstring(game:HttpGet("https://raw.githubusercontent.com/yourusername/yourrepo/main/script.lua"))()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/Cxltures/script-test/refs/heads/main/script.lua"))()
                 end)
                 if not success then
                     warn("Failed to restart script:", err)
@@ -67,7 +65,6 @@ local function rejoin()
             end
             
             script:Destroy()
-        ]]
     end
     
     if #Players:GetPlayers() <= 1 then
